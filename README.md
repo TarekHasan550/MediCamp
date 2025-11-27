@@ -1,36 +1,47 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+📄 Complete Page List for Medical Camp Management System
+🗂️ Pages You Need to Build:
+Public Pages:
+Home Page ✅ (already done)
 
-## Getting Started
+Available Camps Page
 
-First, run the development server:
+Camp Details Page
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Join Us / Authentication Page
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+404 Page
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Participant Dashboard Pages:
+Participant Dashboard Layout
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Participant Analytics
 
-## Learn More
+Participant Profile
 
-To learn more about Next.js, take a look at the following resources:
+Registered Camps
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Payment History
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Organizer Dashboard Pages:
+Organizer Dashboard Layout
 
-## Deploy on Vercel
+Organizer Profile
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Add A Camp
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Manage Camps
+
+Manage Registered Camps
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+

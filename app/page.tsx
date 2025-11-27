@@ -1,7 +1,8 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-import Navbar from '@/components/navbar/Navbar';
+import Navbar from '@/components/shared/navbar/Navbar';
+import Footer from '@/components/shared/Footer';
 
 // Define interfaces
 interface Camp {
@@ -88,7 +89,7 @@ const Home = () => {
       <Navbar />
 
       {/* Banner Slider */}
-      <section className="relative bg-gradient-to-r from-primary/90 to-primary text-background">
+      <section className="relative bg-linear-to-r from-primary/90 to-primary text-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <motion.div
             key={currentSlide}
@@ -289,20 +290,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-muted-foreground text-background py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-lg font-semibold mb-4">MediCamp</h3>
-              <p className="text-muted">
-                Providing quality healthcare services through organized medical
-                camps.
-              </p>
-            </div>
-            {/* Add more footer columns as needed */}
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
