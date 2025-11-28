@@ -21,7 +21,7 @@ export default function DashboardLayout({
           id: 1,
           name: 'John Doe',
           email: 'john@example.com',
-          role: 'participant', // or 'organizer'
+          role: 'organizer', // or 'organizer'
         };
 
         setUser(mockUser);
