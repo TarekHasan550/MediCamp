@@ -3,7 +3,7 @@ import { GiHealthNormal } from 'react-icons/gi';
 
 export default function Logo({color="black"}: {color?: string}) {
   return (
-    <div>
+    <a href='/'>
       <div className="flex items-center space-x-3">
         <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
           <span className={`${color=="black"?"text-primary-foreground":"text-secondary-foreground"} font-bold text-lg`}>
@@ -14,6 +14,6 @@ export default function Logo({color="black"}: {color?: string}) {
           MediCamp
         </span>
       </div>
-    </div>
+    </a>
   );
 }
