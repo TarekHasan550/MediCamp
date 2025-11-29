@@ -1,47 +1,36 @@
-📄 Complete Page List for Medical Camp Management System
-🗂️ Pages You Need to Build:
-Public Pages:
-Home Page ✅ (already done)
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Available Camps Page
+## Getting Started
 
-Camp Details Page
+First, run the development server:
 
-Join Us / Authentication Page
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-404 Page
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-Participant Dashboard Pages:
-Participant Dashboard Layout
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Participant Analytics
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-Participant Profile
+## Learn More
 
-Registered Camps
+To learn more about Next.js, take a look at the following resources:
 
-Payment History
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-Organizer Dashboard Pages:
-Organizer Dashboard Layout
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Organizer Profile
+## Deploy on Vercel
 
-Add A Camp
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Manage Camps
-
-Manage Registered Camps
------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-
-
-
-
-
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
