@@ -1,16 +1,10 @@
 // components/Navbar.tsx
 'use client';
 
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-  Bell,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Settings,
-  User,
-  X,
-} from 'lucide-react';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { LayoutDashboard, LogOut, Menu, Settings, User, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -67,7 +61,7 @@ export default function Navbar() {
 
   return (
     <div className="sticky top-0 z-50">
-      <nav className="bg-background shadow-sm border-b">
+      <nav className="bg-background shadow-xs border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo & Mobile Menu Button */}
@@ -107,12 +101,6 @@ export default function Navbar() {
               ) : user ? (
                 // User is logged in - show profile dropdown
                 <div className="flex items-center space-x-4">
-                  {/* Notifications (optional) */}
-                  <button className="text-muted-foreground hover:text-foreground transition-colors relative">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
-                  </button>
-
                   {/* Profile Dropdown */}
                   <div className="relative">
                     <button
@@ -192,7 +180,12 @@ export default function Navbar() {
                 // User is not logged in - show Join Us button
                 <Link
                   href="/join-us"
-                  className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors font-medium"
+                  className={cn(
+                    buttonVariants({
+                      variant: 'outline',
+                      className: 'rounded-xs',
+                    })
+                  )}
                 >
                   Join Us
                 </Link>

@@ -3,7 +3,7 @@
 
 import Footer from '@/components/shared/Footer';
 import Navbar from '@/components/shared/navbar/Navbar';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Eye, EyeOff, Lock, Mail, User, UserPlus } from 'lucide-react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';

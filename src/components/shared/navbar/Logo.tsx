@@ -5,7 +5,7 @@ export default function Logo({ color = 'black' }: { color?: string }) {
   return (
     <Link href="/">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+        <div className="w-10 h-10 bg-primary rounded-xs flex items-center justify-center">
           <span
             className={`${
               color == 'black'

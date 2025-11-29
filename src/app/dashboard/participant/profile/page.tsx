@@ -1,8 +1,8 @@
 // app/dashboard/participant/profile/page.tsx
 'use client';
 
-import { motion } from 'framer-motion';
 import { Calendar, Camera, Mail, Phone, Save, User, Users } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 

@@ -1,8 +1,8 @@
 // app/dashboard/organizer/add-camp/page.tsx
 'use client';
 
-import { motion } from 'framer-motion';
 import { Calendar, DollarSign, MapPin, Save, Upload, User } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 

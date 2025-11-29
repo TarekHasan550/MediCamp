@@ -1,12 +1,12 @@
 // app/available-camps/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Filter, Grid3X3, Grid2X2 } from 'lucide-react';
-import Navbar from '@/components/shared/navbar/Navbar';
 import Footer from '@/components/shared/Footer';
+import Navbar from '@/components/shared/navbar/Navbar';
+import { Filter, Grid2X2, Grid3X3, Search } from 'lucide-react';
+import { motion } from 'motion/react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 interface Camp {
   id: number;

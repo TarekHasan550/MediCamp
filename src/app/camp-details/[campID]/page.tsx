@@ -1,20 +1,19 @@
 // app/camp-details/[id]/page.tsx
 'use client';
 
-import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import Navbar from '@/components/shared/navbar/Navbar';
 import {
   Calendar,
-  MapPin,
-  User,
-  Users,
-  ArrowLeft,
-  Star,
   Clock,
   DollarSign,
+  MapPin,
+  Star,
+  User,
+  Users,
 } from 'lucide-react';
+import { motion } from 'motion/react';
 import { useParams } from 'next/navigation';
-import Navbar from '@/components/shared/navbar/Navbar';
+import { useEffect, useState } from 'react';
 
 interface Camp {
   id: number;

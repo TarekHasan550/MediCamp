@@ -1,18 +1,18 @@
 // app/dashboard/organizer/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { motion } from 'framer-motion';
 import {
+  Briefcase,
   Camera,
+  Mail,
+  MapPin,
+  Phone,
   Save,
   User,
-  Mail,
-  Phone,
-  MapPin,
-  Briefcase,
 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 interface OrganizerProfileForm {
   name: string;
