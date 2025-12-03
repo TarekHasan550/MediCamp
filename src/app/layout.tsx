@@ -1,3 +1,6 @@
+import QueryProvider from '@/components/query-provider';
+import SessionProvider from '@/components/session-provider';
+import { Toaster } from '@/components/ui/sonner';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -22,7 +25,10 @@ export default function RootLayout({
         className={`${inter.className} antialiased`}
         suppressHydrationWarning={true}
       >
-        {children}
+        <SessionProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </SessionProvider>
+        <Toaster />
       </body>
     </html>
   );

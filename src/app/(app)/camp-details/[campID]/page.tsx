@@ -1,7 +1,15 @@
 // app/camp-details/[id]/page.tsx
 'use client';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
-import Navbar from '@/components/shared/navbar/Navbar';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Calendar,
   Clock,
@@ -10,8 +18,10 @@ import {
   Star,
   User,
   Users,
+  X,
 } from 'lucide-react';
 import { motion } from 'motion/react';
+import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -136,19 +146,19 @@ const CampDetails = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <Navbar />
-
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Camp Header */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
           {/* Camp Image */}
           <div className="relative">
-            <img
+            <Image
               src={camp.image}
               alt={camp.name}
-              className="w-full h-96 lg:h-full object-cover rounded-xl shadow-lg"
+              fill
+              className="object-cover rounded-xl shadow-sm"
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              priority
             />
           </div>
 
@@ -406,13 +416,13 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
         <div className="p-6 border-b border-border">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold text-foreground">
-              Join {camp.name}
+              Join <span className="text-primary">{camp.name}</span>
             </h2>
             <button
               onClick={onClose}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-muted-foreground/50 hover:text-foreground transition-colors cursor-pointer"
             >
-              &times;
+              <X />
             </button>
           </div>
         </div>
@@ -421,28 +431,32 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
           {/* Read-only Camp Information */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-muted rounded-lg">
             <div>
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-muted-foreground/50">
                 Camp Name
               </label>
-              <p className="text-foreground font-semibold">{camp.name}</p>
+              <p className="text-muted-foreground/80 font-semibold">
+                {camp.name}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-muted-foreground/50">
                 Camp Fees
               </label>
-              <p className="text-foreground font-semibold">৳{camp.fees}</p>
+              <p className="text-green-600 font-semibold">৳{camp.fees}</p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-muted-foreground/50">
                 Location
               </label>
-              <p className="text-foreground font-semibold">{camp.location}</p>
+              <p className="text-muted-foreground/80 font-semibold">
+                {camp.location}
+              </p>
             </div>
             <div>
-              <label className="text-sm font-medium text-muted-foreground">
+              <label className="text-sm font-medium text-muted-foreground/50">
                 Healthcare Professional
               </label>
-              <p className="text-foreground font-semibold">
+              <p className="font-semibold text-primary">
                 {camp.healthcareProfessional}
               </p>
             </div>
@@ -450,96 +464,81 @@ const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
           {/* Editable Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Participant Name
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label>Participant Name</Label>
+              <Input
+                disabled
                 type="text"
                 value={formData.participantName}
                 onChange={(e) =>
                   setFormData({ ...formData, participantName: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Participant Email
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label>Participant Email</Label>
+              <Input
+                disabled
                 type="email"
                 value={formData.participantEmail}
                 onChange={(e) =>
                   setFormData({ ...formData, participantEmail: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Age
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label>Age</Label>
+              <Input
                 type="number"
                 value={formData.age}
                 onChange={(e) =>
                   setFormData({ ...formData, age: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Phone Number
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label>Phone Number</Label>
+              <Input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) =>
                   setFormData({ ...formData, phone: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Gender
-              </label>
-              <select
+            <div className="space-y-2">
+              <Label>Gender</Label>
+              <Select
                 value={formData.gender}
-                onChange={(e) =>
-                  setFormData({ ...formData, gender: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                required
+                onValueChange={(e) => setFormData({ ...formData, gender: e })}
               >
-                <option value="">Select Gender</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a fruit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Emergency Contact
-              </label>
-              <input
+            <div className="space-y-2">
+              <Label>Emergency Contact</Label>
+              <Input
                 type="tel"
                 value={formData.emergencyContact}
                 onChange={(e) =>
                   setFormData({ ...formData, emergencyContact: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 required
               />
             </div>

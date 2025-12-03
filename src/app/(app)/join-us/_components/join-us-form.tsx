@@ -2,13 +2,18 @@
 'use client';
 
 import Footer from '@/components/shared/Footer';
-import Navbar from '@/components/shared/navbar/Navbar';
-import { motion } from 'motion/react';
+
+import { Spinner } from '@/components/ui/spinner';
 import { Eye, EyeOff, Lock, Mail, User, UserPlus } from 'lucide-react';
-import { useState } from 'react';
+import { motion } from 'motion/react';
+import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { FaGithub } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
+import { toast } from 'sonner';
+import { joinUs } from '../_actions';
 
 interface LoginForm {
   email: string;
@@ -20,13 +25,14 @@ interface RegisterForm {
   email: string;
   password: string;
   confirmPassword: string;
-  role: 'participant' | 'organizer';
 }
 
-const JoinUs = () => {
+const JoinUsForm = () => {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isRegistering, startIsRegisteringTransition] = useTransition();
 
   // React Hook Form for Login
   const {
@@ -40,7 +46,7 @@ const JoinUs = () => {
   const {
     register: registerRegister,
     handleSubmit: handleRegisterSubmit,
-    formState: { errors: registerErrors },
+    formState: { errors: registerErrors, isValidating },
     watch,
     reset: resetRegister,
   } = useForm<RegisterForm>();
@@ -48,15 +54,33 @@ const JoinUs = () => {
   const watchPassword = watch?.('password');
 
   const onLoginSubmit = (data: LoginForm) => {
-    console.log('Login data:', data);
-    // Handle login logic here
-    // Show sweet alert on success
+    startIsRegisteringTransition(async () => {
+      const { ok, error } = await signIn('credentials', {
+        email: data.email,
+        password: data.password,
+        redirect: false,
+      });
+      if (error) {
+        toast.error(error);
+      }
+      if (ok) {
+        toast.success('Login successful');
+        router.push('/');
+      }
+    });
   };
 
   const onRegisterSubmit = (data: RegisterForm) => {
-    console.log('Register data:', data);
-    // Handle registration logic here
-    // Show sweet alert on success
+    startIsRegisteringTransition(async () => {
+      const res = await joinUs(data);
+      if (res.error) {
+        toast.error(res.error);
+      }
+      if (res.data) {
+        setIsLogin(true);
+        toast.success('Registration successful');
+      }
+    });
   };
 
   const toggleMode = () => {
@@ -67,8 +91,6 @@ const JoinUs = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar />
-
       <main className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-md">
           {/* Header */}
@@ -187,8 +209,14 @@ const JoinUs = () => {
                 type="submit"
                 className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold flex items-center justify-center gap-2"
               >
-                <User className="h-4 w-4" />
-                Sign In
+                {isRegistering ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <>
+                    <User className="h-4 w-4" />
+                    Sign In
+                  </>
+                )}
               </motion.button>
             </motion.form>
           ) : (
@@ -248,27 +276,6 @@ const JoinUs = () => {
                 {registerErrors.email && (
                   <p className="mt-1 text-sm text-destructive">
                     {registerErrors.email.message}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Account Type
-                </label>
-                <select
-                  {...registerRegister('role', {
-                    required: 'Please select account type',
-                  })}
-                  className="w-full px-3 py-3 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                >
-                  <option value="">Select account type</option>
-                  <option value="participant">Participant</option>
-                  <option value="organizer">Organizer</option>
-                </select>
-                {registerErrors.role && (
-                  <p className="mt-1 text-sm text-destructive">
-                    {registerErrors.role.message}
                   </p>
                 )}
               </div>
@@ -351,8 +358,14 @@ const JoinUs = () => {
                 type="submit"
                 className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold flex items-center justify-center gap-2"
               >
-                <UserPlus className="h-4 w-4" />
-                Create Account
+                {isRegistering ? (
+                  <Spinner className="h-4 w-4" />
+                ) : (
+                  <>
+                    <UserPlus className="h-4 w-4" />
+                    Create Account
+                  </>
+                )}
               </motion.button>
             </motion.form>
           )}
@@ -379,4 +392,4 @@ const JoinUs = () => {
   );
 };
 
-export default JoinUs;
+export default JoinUsForm;

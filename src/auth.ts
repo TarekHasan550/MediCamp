@@ -1,8 +1,7 @@
-import axios from 'axios';
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Github from 'next-auth/providers/github';
-import { tryCatch } from './lib/tyr-catch';
+import { fetchAPI } from './lib/api-client';
 
 class InvalidLoginError extends CredentialsSignin {
   code = 'User not found';
@@ -20,14 +19,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       },
       async authorize(credentials, request) {
         const { email, password } = credentials;
-        const {} = await tryCatch(
-          axios.post('/api/auth/login', { email, password })
-        );
+        const { data, error } = await fetchAPI('/users/signin', {
+          method: 'POST',
+          body: JSON.stringify({ email, password }),
+        });
+        const user = data.data.user;
+
+        if (error) {
+          throw new Error(error);
+        }
         return {
-          // id: user._id.toString(),
-          // name: user.name,
-          // email: user.email,
-          // role: user.role,
+          id: user._id.toString(),
+          name: user.name,
+          email: user.email,
+          role: user.role,
         };
       },
     }),
@@ -53,19 +58,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     jwt({ token, user }) {
       if (user) {
-        // token.id = user.id;
-        // token.name = user.name;
-        // token.email = user.email;
-        // token.role = user.role;
+        token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
+        token.role = user.role;
       }
       return token;
     },
     session({ session, token }) {
       if (session.user) {
-        // session.user.id = token.id as string;
-        // session.user.name = token.name as string;
-        // session.user.email = token.email as string;
-        // session.user.role = token.role as any;
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.role = token.role as string;
       }
       return session;
     },

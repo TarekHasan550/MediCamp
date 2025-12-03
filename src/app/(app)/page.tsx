@@ -1,9 +1,10 @@
 'use client';
-import { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import Navbar from '@/components/shared/navbar/Navbar';
 import Footer from '@/components/shared/Footer';
+import useAvailableCamps from '@/hooks/use-avaliable-camps';
+import { motion } from 'motion/react';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import HealthCampCard from './available-camps/_components/camp-card';
 
 // Define interfaces
 interface Camp {
@@ -41,6 +42,12 @@ const Home = () => {
   const [camps, setCamps] = useState<Camp[]>([]);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const { data } = useAvailableCamps({
+    limit: 6,
+    page: 1,
+  });
+
   useEffect(() => {
     const mockCamps: Camp[] = [
       {
@@ -86,9 +93,6 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      {/* Navigation */}
-      <Navbar />
-
       {/* Banner Slider */}
       <section className="relative bg-linear-to-r from-primary/90 to-primary text-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
@@ -137,59 +141,8 @@ const Home = () => {
 
           {/* Camps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {camps.map((camp) => (
-              <motion.div
-                key={camp.id}
-                whileHover={{ y: -5 }}
-                className="bg-background rounded-xl shadow-lg border border-border overflow-hidden hover:shadow-xl transition"
-              >
-                <img
-                  src={camp.image}
-                  alt={camp.name}
-                  className="w-full h-48 object-cover"
-                />
-
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-3">
-                    <h3 className="text-xl font-semibold text-muted-foreground">
-                      {camp.name}
-                    </h3>
-                    <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-                      ৳{camp.fees}
-                    </span>
-                  </div>
-
-                  <div className="space-y-2 text-muted-foreground mb-4">
-                    <div className="flex items-center space-x-2">
-                      <CalendarIcon />
-                      <span>{new Date(camp.date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <LocationIcon />
-                      <span>{camp.location}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <DoctorIcon />
-                      <span>{camp.professional}</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <UsersIcon />
-                      <span>{camp.participants} Participants</span>
-                    </div>
-                  </div>
-
-                  <p className="text-muted-foreground text-sm mb-6 line-clamp-2">
-                    {camp.description}
-                  </p>
-
-                  <Link
-                    href={`/camp-details/${camp.id}`}
-                    className="block w-full bg-primary/90 text-background text-center py-3 rounded-lg hover:bg-primary transition font-medium"
-                  >
-                    View Details
-                  </Link>
-                </div>
-              </motion.div>
+            {data?.map((camp: Camp) => (
+              <HealthCampCard layout="grid" key={camp.id} camp={camp} />
             ))}
           </div>
 
