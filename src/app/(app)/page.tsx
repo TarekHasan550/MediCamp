@@ -8,7 +8,7 @@ import HealthCampCard from './available-camps/_components/camp-card';
 
 // Define interfaces
 interface Camp {
-  id: number;
+  _id: string;
   name: string;
   image: string;
   fees: number;
@@ -47,24 +47,6 @@ const Home = () => {
     limit: 6,
     page: 1,
   });
-
-  useEffect(() => {
-    const mockCamps: Camp[] = [
-      {
-        id: 1,
-        name: 'Cardiology Health Camp',
-        image: '/images/camp1.jpg',
-        fees: 500,
-        date: '2024-02-15',
-        location: 'Dhaka Medical College',
-        professional: 'Dr. Rahman',
-        participants: 45,
-        description: 'Free heart checkup and consultation',
-      },
-      // ... more camps
-    ];
-    setCamps(mockCamps);
-  }, []);
 
   useEffect(() => {
     const mockFeedback: Feedback[] = [
@@ -141,7 +123,7 @@ const Home = () => {
 
           {/* Camps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {data?.map((camp: Camp, index:number) => (
+            {data?.map((camp: Camp, index: number) => (
               <HealthCampCard layout="grid" key={index} camp={camp} />
             ))}
           </div>
