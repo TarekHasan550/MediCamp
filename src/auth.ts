@@ -1,6 +1,7 @@
 import NextAuth, { CredentialsSignin } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import Github from 'next-auth/providers/github';
+import Google from 'next-auth/providers/google';
 import { fetchAPI } from './lib/api-client';
 
 class InvalidLoginError extends CredentialsSignin {
@@ -24,34 +25,58 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           body: JSON.stringify({ email, password }),
         });
         const user = data.data.user;
+        const token = data.data.token;
 
         if (error) {
-          throw new Error(error);
+          throw new InvalidPasswordError();
         }
         return {
           id: user._id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
+          accessToken: token,
         };
       },
     }),
     Github,
+    Google,
   ],
 
   callbacks: {
     async signIn({ user, account }) {
       if (account?.provider === 'github') {
-        // let existingUser = await User.findOne({ email: user.email });
-        // if (!existingUser) {
-        //   existingUser = await User.create({
-        //     name: user.name || 'GitHub User',
-        //     email: user.email,
-        //     image: user.image,
-        //   });
-        // }
-        // user.id = existingUser._id.toString();
-        // user.role = existingUser.role;
+        const { data, error } = await fetchAPI('/users/signup-oauth', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          }),
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
+        user.id = data.data.user._id.toString();
+        user.role = data.data.user.role;
+        user.accessToken = data.data.token;
+      } else if (account?.provider === 'google') {
+        const { data, error } = await fetchAPI('/users/signup-oauth', {
+          method: 'POST',
+          body: JSON.stringify({
+            email: user.email,
+            name: user.name,
+            image: user.image,
+          }),
+        });
+
+        if (error) {
+          throw new Error(error);
+        }
+        user.id = data.data.user._id.toString();
+        user.role = data.data.user.role;
+        user.accessToken = data.data.token;
       }
       return true;
     },
@@ -62,6 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.name = user.name;
         token.email = user.email;
         token.role = user.role;
+        token.accessToken = user.accessToken;
       }
       return token;
     },
@@ -71,6 +97,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.name = token.name as string;
         session.user.email = token.email as string;
         session.user.role = token.role as string;
+        session.user.accessToken = token.accessToken as string;
       }
       return session;
     },

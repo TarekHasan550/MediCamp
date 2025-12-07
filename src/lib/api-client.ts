@@ -14,7 +14,6 @@ export async function fetchAPI<T = any>(
       ...options,
       headers: {
         'Content-Type': 'application/json',
-
         ...options.headers,
       },
 

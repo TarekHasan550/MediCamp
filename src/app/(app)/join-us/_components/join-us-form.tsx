@@ -46,7 +46,7 @@ const JoinUsForm = () => {
   const {
     register: registerRegister,
     handleSubmit: handleRegisterSubmit,
-    formState: { errors: registerErrors, isValidating },
+    formState: { errors: registerErrors, isValidating, isValid },
     watch,
     reset: resetRegister,
   } = useForm<RegisterForm>();
@@ -89,6 +89,12 @@ const JoinUsForm = () => {
     resetRegister();
   };
 
+  const signInWithOAuth = (provider: string) => {
+    signIn(provider, {
+      redirectTo: '/',
+    });
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <main className="flex-1 flex items-center justify-center px-4 py-8">
@@ -107,12 +113,18 @@ const JoinUsForm = () => {
 
           {/* Social Login */}
           <div className="mb-6 flex flex-col gap-2">
-            <button className="w-full flex items-center justify-center gap-3 bg-card border border-input text-foreground px-4 py-3 rounded-lg hover:bg-accent transition-colors font-medium cursor-pointer">
+            <button
+              onClick={() => signInWithOAuth('google')}
+              className="w-full flex items-center justify-center gap-3 bg-card border border-input text-foreground px-4 py-3 rounded-lg hover:bg-accent transition-colors font-medium cursor-pointer"
+            >
               <FcGoogle />
               Continue with Google
             </button>
 
-            <button className="w-full flex items-center justify-center gap-3 bg-card border border-input text-foreground px-4 py-3 rounded-lg hover:bg-accent transition-colors font-medium cursor-pointer">
+            <button
+              onClick={() => signInWithOAuth('github')}
+              className="w-full flex items-center justify-center gap-3 bg-card border border-input text-foreground px-4 py-3 rounded-lg hover:bg-accent transition-colors font-medium cursor-pointer"
+            >
               <FaGithub />
               Continue with Github
             </button>
@@ -357,6 +369,7 @@ const JoinUsForm = () => {
                 whileTap={{ scale: 0.98 }}
                 type="submit"
                 className="w-full bg-primary text-primary-foreground py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold flex items-center justify-center gap-2"
+                disabled={isRegistering || isValidating || !isValid}
               >
                 {isRegistering ? (
                   <Spinner className="h-4 w-4" />

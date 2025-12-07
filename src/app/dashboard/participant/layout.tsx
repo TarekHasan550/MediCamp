@@ -2,6 +2,7 @@
 'use client';
 
 import Logo from '@/components/shared/navbar/Logo';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   BarChart3,
   Calendar,
@@ -11,6 +12,7 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
@@ -46,6 +48,7 @@ export default function ParticipantLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const session = useSession();
 
   const handleLogout = () => {
     // Handle logout logic
@@ -133,14 +136,24 @@ export default function ParticipantLayout({
 
             <div className="flex items-center space-x-4 ml-auto">
               <div className="text-right">
-                <p className="text-sm font-medium text-foreground">John Doe</p>
-                <p className="text-xs text-muted-foreground">Participant</p>
+                <p className="text-sm font-medium text-foreground">
+                  {session.data?.user.name}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {session.data?.user.role === 'organizer'
+                    ? 'Organizer'
+                    : 'Participant'}
+                </p>
               </div>
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-primary-foreground text-sm font-medium">
-                  JD
-                </span>
-              </div>
+              <Avatar>
+                <AvatarImage
+                  src={session.data?.user.image || ''}
+                  alt={session.data?.user.name || ''}
+                />
+                <AvatarFallback>
+                  {session.data?.user.name?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
             </div>
           </div>
         </header>

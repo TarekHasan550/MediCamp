@@ -1,0 +1,27 @@
+{
+  status: 'success',
+  data: {
+    user: {
+      _id: '692e47247991f70df9095bcc',
+      name: 'Mashruf Ahmed',
+      email: 'superadmin@gmail.com',
+      password: '$2b$10$S834th/vGQwl.GCLDzUWMOe5Q2JOGDDOkhMTBIhSFP4bqsDQjnI1G',
+      role: 'user',
+      createdAt: '2025-12-02T01:55:48.531Z',
+      updatedAt: '2025-12-02T01:55:48.531Z',
+      __v: 0
+    }
+  }
+}
+
+
+        // let existingUser = await User.findOne({ email: user.email });
+        // if (!existingUser) {
+        //   existingUser = await User.create({
+        //     name: user.name || 'GitHub User',
+        //     email: user.email,
+        //     image: user.image,
+        //   });
+        // }
+        // user.id = existingUser._id.toString();
+        // user.role = existingUser.role;
