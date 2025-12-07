@@ -141,8 +141,8 @@ const Home = () => {
 
           {/* Camps Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-            {data?.map((camp: Camp) => (
-              <HealthCampCard layout="grid" key={camp.id} camp={camp} />
+            {data?.map((camp: Camp, index:number) => (
+              <HealthCampCard layout="grid" key={index} camp={camp} />
             ))}
           </div>
 

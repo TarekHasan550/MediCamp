@@ -10,9 +10,6 @@ export default function QueryProvider({
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        staleTime: 1000 * 60 * 5,
-        gcTime: 1000 * 60 * 5,
-        refetchOnMount: false,
         refetchOnReconnect: false,
         refetchOnWindowFocus: false,
       },

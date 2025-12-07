@@ -1,4 +1,3 @@
-// app/available-camps/page.tsx
 'use client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ import { useState } from 'react';
 import HealthCampCard from './camp-card';
 
 interface Camp {
-  id: number;
+  _id: string;
   name: string;
   image: string;
   fees: number;
@@ -38,22 +37,26 @@ interface Camp {
 
 const AvlCamps = () => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortBy, setSortBy] = useState<'participants' | 'fees' | 'name'>(
-    'participants'
-  );
+  const [sortBy, setSortBy] = useState<'participantCount' | 'fees' | ''>(''); // ✅ Match backend
   const [layout, setLayout] = useState<'grid' | 'list'>('grid');
+  const [page, setPage] = useState(1); // ✅ Add page state
 
+  // ✅ Pass all query params
   const {
     data = [],
     isLoading,
     isError,
     error,
   } = useAvailableCamps({
+    search: searchQuery,
+    sort: sortBy,
+    page: page,
     limit: 6,
   });
+
   if (isError) {
     return (
-      <div className=" bg-background justify-center items-center flex">
+      <div className="bg-background justify-center items-center flex">
         <Alert variant="destructive" className="max-w-7xl mt-5">
           <AlertCircleIcon />
           <AlertTitle>Error</AlertTitle>
@@ -64,10 +67,9 @@ const AvlCamps = () => {
   }
 
   return (
-    <div className=" min-h-[calc(100vh-16.5rem)] bg-background">
-      {/* Main Content */}
+    <div className="min-h-[calc(100vh-16.5rem)] bg-background">
       {isLoading ? (
-        <div className="flex items-center justify-center bg-black/5 relative">
+        <div className="flex items-center justify-center bg-black/5 relative min-h-[60vh]">
           <Spinner className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-10 h-10" />
         </div>
       ) : (
@@ -82,6 +84,7 @@ const AvlCamps = () => {
               for your needs
             </p>
           </div>
+
           <div className="bg-card border rounded-lg p-6 mb-8">
             <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
               {/* Search Bar */}
@@ -89,17 +92,23 @@ const AvlCamps = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <input
                   type="text"
-                  placeholder="Search camps by name, location, or doctor..."
+                  placeholder="Search camps by name..."
                   className="w-full pl-10 pr-4 py-3 border border-input rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setPage(1); // ✅ Reset to page 1 on search
+                  }}
                 />
                 {searchQuery && (
                   <Button
                     size={'icon-sm'}
                     variant="ghost"
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-pointer"
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setPage(1);
+                    }}
                   >
                     <X />
                   </Button>
@@ -114,11 +123,14 @@ const AvlCamps = () => {
                   <select
                     className="pl-10 pr-8 py-3 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
                     value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as any)}
+                    onChange={(e) => {
+                      setSortBy(e.target.value as any);
+                      setPage(1); // ✅ Reset to page 1 on sort change
+                    }}
                   >
-                    <option value="participants">Most Registered</option>
+                    <option value="">Most Recent</option>
+                    <option value="participantCount">Most Registered</option>
                     <option value="fees">Camp Fees</option>
-                    <option value="name">Alphabetical</option>
                   </select>
                 </div>
 
@@ -164,8 +176,8 @@ const AvlCamps = () => {
                 : 'grid grid-cols-1 gap-6'
             }
           >
-            {data?.map((camp: Camp) => (
-              <HealthCampCard camp={camp} layout={layout} key={camp.id} />
+            {data?.map((camp: Camp, idx: number) => (
+              <HealthCampCard camp={camp} layout={layout} key={idx} />
             ))}
           </div>
 
@@ -178,7 +190,7 @@ const AvlCamps = () => {
                 </EmptyMedia>
                 <EmptyTitle>No camps found</EmptyTitle>
                 <EmptyDescription>
-                  {`Showing ${data.length} camps`}
+                  Try adjusting your search or filters
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>

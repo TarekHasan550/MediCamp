@@ -9,9 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import ImageExtract from '@/lib/image-extract';
 import {
   Calendar,
   ChevronRight,
+  DollarSign,
   IndianRupee,
   MapPin,
   Stethoscope,
@@ -19,10 +21,9 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { CiBadgeDollar } from 'react-icons/ci';
 
 interface Camp {
-  id: number;
+  _id: string;
   name: string;
   image: string;
   fees: number;
@@ -44,7 +45,7 @@ export default function HealthCampCard({
   if (!camp) {
     return null;
   }
-
+  // const { data: image, isLoading } = useLoadImg(camp.image);
   const formattedDate = new Date(camp.date).toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -52,14 +53,18 @@ export default function HealthCampCard({
     day: 'numeric',
   });
 
+  const img = ImageExtract(camp.image);
+
   return layout === 'grid' ? (
     <Card className="w-full max-w-sm overflow-hidden transition-all duration-300 border-0 shadow-sm pt-0">
       {/* Image Section */}
       <div className="relative h-42 w-full">
         <Image
-          src={camp.image}
+          src={img as string}
           alt={camp.name}
           fill
+          loading="eager"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           className="object-cover transition-transform duration-500 hover:scale-105"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent" />
@@ -76,7 +81,7 @@ export default function HealthCampCard({
             variant="secondary"
             className="bg-white/95 text-emerald-700 font-semibold text-sm backdrop-blur-sm"
           >
-            <CiBadgeDollar className="w-6 h-6 -ml-1" />
+            <DollarSign className="w-6 h-6 -ml-1" />
             {camp.fees === 0 ? 'FREE' : camp.fees}
           </Badge>
         </div>
@@ -127,7 +132,7 @@ export default function HealthCampCard({
       <CardFooter className="flex gap-3">
         <Button
           className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
-          onClick={() => router.push(`/camp-details/${camp.id}`)}
+          onClick={() => router.push(`/camp-details/${camp._id}`)}
         >
           View Details
         </Button>
@@ -135,12 +140,19 @@ export default function HealthCampCard({
     </Card>
   ) : (
     <div
-      onClick={() => router.push(`/camp-details/${camp.id}`)}
+      onClick={() => router.push(`/camp-details/${camp._id}`)}
       className="flex items-center gap-4 p-4 rounded-xl border bg-card hover:bg-muted/50 transition-all cursor-pointer group"
     >
       {/* Image */}
       <div className="relative w-20 h-20 rounded-lg overflow-hidden shrink-0">
-        <Image src={camp.image} alt={camp.name} fill className="object-cover" />
+        <Image
+          src={img as string}
+          alt={camp.name}
+          fill
+          loading="eager"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          className="object-cover"
+        />
       </div>
 
       {/* Content */}

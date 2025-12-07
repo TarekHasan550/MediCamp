@@ -2,6 +2,9 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { Spinner } from '@/components/ui/spinner';
+import { fetchAPI } from '@/lib/api-client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { motion } from 'framer-motion';
 import {
@@ -13,15 +16,16 @@ import {
   User,
   X,
 } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { toast } from 'sonner';
 
 export interface CampFormData {
   name: string;
   image: string;
   fees: number;
   date: string;
-  time: string;
   location: string;
   healthcareProfessional: string;
   description: string;
@@ -31,10 +35,12 @@ export default function AddCamp() {
   const [imagePreview, setImagePreview] = useState<string>('');
   const [uploadProgress, setUploadProgress] = useState(0);
   const [fileKey, setFileKey] = useState('');
+  const session = useSession();
+  const queryClient = useQueryClient();
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid, isDirty },
     reset,
     watch,
     setValue,
@@ -42,17 +48,19 @@ export default function AddCamp() {
     defaultValues: {
       fees: 0,
       date: new Date().toISOString().split('T')[0],
-      time: '09:00',
     },
+    mode: 'onChange',
   });
 
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] as File;
+    setImagePreview(URL.createObjectURL(file));
     if (file) {
-      setImagePreview(URL.createObjectURL(file));
       const res = await fetch('/api/upload/presigned', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({
           fileName: file.name,
           fileType: file.type || 'image/jpeg',
@@ -107,8 +115,41 @@ export default function AddCamp() {
     }
   };
 
+  const mutation = useMutation({
+    mutationKey: ['add-camp'],
+    mutationFn: async (data: CampFormData) => {
+      const res = await fetchAPI('/camps/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.data?.user?.accessToken}`,
+        },
+        body: JSON.stringify({
+          ...data,
+          dateTime: new Date(data.date).toISOString(),
+          professional: data.healthcareProfessional,
+        }),
+      });
+      if (res.error) {
+        throw new Error(res.error);
+      }
+      return res.data;
+    },
+    onSuccess(_data) {
+      reset();
+      setImagePreview('');
+      mutation.reset();
+      queryClient.invalidateQueries({ queryKey: ['available-camps'] });
+      toast.success('Camp added successfully');
+    },
+    onError(error) {
+      console.log(error);
+      toast.error('Failed to add camp');
+    },
+  });
+
   const onSubmit = async (data: CampFormData) => {
-    console.log(data);
+    mutation.mutate(data);
   };
 
   return (
@@ -247,16 +288,6 @@ export default function AddCamp() {
                 </div>
               </div>
 
-              {/* Time */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Time *</label>
-                <input
-                  type="time"
-                  {...register('time', { required: 'Time required' })}
-                  className="w-full px-4 py-3 border border-input rounded-lg focus:ring-2 focus:ring-primary outline-none"
-                />
-              </div>
-
               {/* Location */}
               <div className="md:col-span-2">
                 <label className="block text-sm font-medium mb-2">
@@ -335,15 +366,13 @@ export default function AddCamp() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 type="submit"
-                disabled={!imagePreview}
-                className="flex-1 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 font-medium flex items-center justify-center gap-2 disabled:opacity-50 relative"
+                disabled={mutation.isPending || !isValid || !isDirty}
+                className="flex-1 bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 font-medium flex items-center justify-center gap-2 disabled:opacity-50 relative disabled:cursor-not-allowed"
               >
-                {uploadProgress ? (
+                {mutation.isPending ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    {uploadProgress > 0
-                      ? `Uploading ${uploadProgress}%`
-                      : 'Creating...'}
+                    <Spinner />
+                    Creating...
                   </>
                 ) : (
                   <>

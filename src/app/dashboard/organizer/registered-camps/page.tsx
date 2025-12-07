@@ -1,143 +1,118 @@
 // app/dashboard/organizer/registered-camps/page.tsx
 'use client';
 
+import { Spinner } from '@/components/ui/spinner';
+import useOrganizerRegistrations from '@/hooks/use-organizer-registration';
+import { fetchAPI } from '@/lib/api-client';
+import { transformToRegisteredCamps } from '@/lib/transform-data';
+import { useQueryClient } from '@tanstack/react-query';
 import { Check, Filter, Mail, Phone, Search, User, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-
-interface RegisteredCamp {
-  id: number;
-  campName: string;
-  campFees: number;
-  participantName: string;
-  participantEmail: string;
-  participantPhone: string;
-  age: number;
-  gender: string;
-  emergencyContact: string;
-  paymentStatus: 'paid' | 'unpaid';
-  confirmationStatus: 'pending' | 'confirmed';
-  registrationDate: string;
-}
+import { useSession } from 'next-auth/react';
+import { startTransition, useState } from 'react';
+import { toast } from 'sonner';
 
 export default function ManageRegisteredCamps() {
-  const [registrations, setRegistrations] = useState<RegisteredCamp[]>([]);
-  const [filteredRegistrations, setFilteredRegistrations] = useState<
-    RegisteredCamp[]
-  >([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<
+    'unpaid' | 'all' | 'paid-confirmed' | 'paid-pending' | undefined
+  >('all');
+  const session = useSession();
+  const queryClient = useQueryClient();
+  const { data, isLoading } = useOrganizerRegistrations({
+    search: searchQuery,
+    status: statusFilter,
+  });
+  if (!data) {
+    return null;
+  }
 
-  useEffect(() => {
-    // Mock data - replace with TanStack Query
-    const mockRegistrations: RegisteredCamp[] = [
-      {
-        id: 1,
-        campName: 'Cardiology Health Camp',
-        campFees: 500,
-        participantName: 'John Doe',
-        participantEmail: 'john@example.com',
-        participantPhone: '+880 1234-567890',
-        age: 28,
-        gender: 'male',
-        emergencyContact: '+880 9876-543210',
-        paymentStatus: 'paid',
-        confirmationStatus: 'confirmed',
-        registrationDate: '2024-01-15',
-      },
-      {
-        id: 2,
-        campName: 'Dental Care Camp',
-        campFees: 300,
-        participantName: 'Sarah Smith',
-        participantEmail: 'sarah@example.com',
-        participantPhone: '+880 1234-567891',
-        age: 32,
-        gender: 'female',
-        emergencyContact: '+880 9876-543211',
-        paymentStatus: 'unpaid',
-        confirmationStatus: 'pending',
-        registrationDate: '2024-01-20',
-      },
-      {
-        id: 3,
-        campName: 'Eye Care Camp',
-        campFees: 400,
-        participantName: 'Mike Johnson',
-        participantEmail: 'mike@example.com',
-        participantPhone: '+880 1234-567892',
-        age: 45,
-        gender: 'male',
-        emergencyContact: '+880 9876-543212',
-        paymentStatus: 'paid',
-        confirmationStatus: 'pending',
-        registrationDate: '2024-01-25',
-      },
-    ];
-
-    setRegistrations(mockRegistrations);
-    setFilteredRegistrations(mockRegistrations);
-    setLoading(false);
-  }, []);
-
-  // Filter and search functionality
-  useEffect(() => {
-    let results = registrations.filter(
-      (registration) =>
-        registration.campName
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        registration.participantName
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        registration.participantEmail
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase())
-    );
-
-    if (statusFilter !== 'all') {
-      if (statusFilter === 'paid') {
-        results = results.filter((reg) => reg.paymentStatus === 'paid');
-      } else if (statusFilter === 'unpaid') {
-        results = results.filter((reg) => reg.paymentStatus === 'unpaid');
-      } else if (statusFilter === 'confirmed') {
-        results = results.filter(
-          (reg) => reg.confirmationStatus === 'confirmed'
-        );
-      } else if (statusFilter === 'pending') {
-        results = results.filter((reg) => reg.confirmationStatus === 'pending');
-      }
-    }
-
-    setFilteredRegistrations(results);
-  }, [searchQuery, statusFilter, registrations]);
-
-  const handleConfirm = (registrationId: number) => {
-    console.log('Confirming registration:', registrationId);
-    setRegistrations((prev) =>
-      prev.map((reg) =>
-        reg.id === registrationId
-          ? { ...reg, confirmationStatus: 'confirmed' as const }
-          : reg
-      )
-    );
+  const registrations = transformToRegisteredCamps(data);
+  const totalRegistration = data.pagination.total;
+  const getRegistrationCount = () => {
+    const count = data?.data.reduce((total, registration) => {
+      return total + registration.registrations.length;
+    }, 0);
+    return count;
   };
 
-  const handleCancel = (registrationId: number) => {
-    console.log('Cancelling registration:', registrationId);
-    // Show confirmation dialog first
-    if (window.confirm('Are you sure you want to cancel this registration?')) {
-      setRegistrations((prev) =>
-        prev.filter((reg) => reg.id !== registrationId)
+  const getConfirmedRegistrationCount = () => {
+    const count = data?.data.reduce((total, registration) => {
+      return (
+        total +
+        registration.registrations.filter((r) => r.paymentStatus === 'paid')
+          .length
       );
-    }
+    }, 0);
+    return count;
   };
 
-  const canCancel = (registration: RegisteredCamp) => {
-    return !(
-      registration.paymentStatus === 'paid' &&
-      registration.confirmationStatus === 'confirmed'
-    );
+  const getPendingRegistrationCount = () => {
+    const count = data?.data.reduce((total, registration) => {
+      return (
+        total +
+        registration.registrations.filter(
+          (r) => r.confirmationStatus === 'pending'
+        ).length
+      );
+    }, 0);
+    return count;
+  };
+
+  const getTotalFees = () => {
+    const count = data?.data.reduce((total, registration) => {
+      return total + registration.fees;
+    }, 0);
+    return count;
+  };
+
+  const handleConfirm = (registrationId: string) => {
+    startTransition(async () => {
+      const confirmRegistration = await fetchAPI(
+        `/registrations/confirm-registration/${registrationId}`,
+        {
+          method: 'PATCH',
+          headers: {
+            Authorization: `Bearer ${session?.data?.user.accessToken}`,
+          },
+        }
+      );
+
+      if (confirmRegistration.error) {
+        toast.error(confirmRegistration.error);
+      }
+
+      if (confirmRegistration.data) {
+        queryClient.invalidateQueries({
+          queryKey: ['organizer-registrations'],
+        });
+        toast.success('Registration confirmed successfully');
+      }
+    });
+  };
+
+  const handleCancel = (registrationId: string) => {
+    startTransition(async () => {
+      const cancelRegistration = await fetchAPI(
+        `/registrations/cancel-registration/${registrationId}`,
+        {
+          method: 'DELETE',
+          headers: {
+            Authorization: `Bearer ${session?.data?.user.accessToken}`,
+          },
+        }
+      );
+
+      if (cancelRegistration.error) {
+        toast.error(cancelRegistration.error);
+      }
+
+      if (cancelRegistration.data) {
+        queryClient.invalidateQueries({
+          queryKey: ['organizer-registrations'],
+        });
+        toast.success('Registration cancelled successfully');
+      }
+    });
   };
 
   const getStatusColor = (status: string, type: 'payment' | 'confirmation') => {
@@ -150,14 +125,6 @@ export default function ManageRegisteredCamps() {
       ? 'bg-green-100 text-green-800'
       : 'bg-blue-100 text-blue-800';
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Loading registrations...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -180,7 +147,7 @@ export default function ManageRegisteredCamps() {
                 Total Registrations
               </p>
               <p className="text-2xl font-bold text-foreground mt-1">
-                {registrations.length}
+                {getRegistrationCount()}
               </p>
             </div>
             <div className="p-3 bg-blue-100 rounded-lg">
@@ -196,7 +163,7 @@ export default function ManageRegisteredCamps() {
                 Paid Registrations
               </p>
               <p className="text-2xl font-bold text-foreground mt-1">
-                {registrations.filter((r) => r.paymentStatus === 'paid').length}
+                {getConfirmedRegistrationCount()}
               </p>
             </div>
             <div className="p-3 bg-green-100 rounded-lg">
@@ -212,11 +179,7 @@ export default function ManageRegisteredCamps() {
                 Pending Confirmation
               </p>
               <p className="text-2xl font-bold text-foreground mt-1">
-                {
-                  registrations.filter(
-                    (r) => r.confirmationStatus === 'pending'
-                  ).length
-                }
+                {getPendingRegistrationCount()}
               </p>
             </div>
             <div className="p-3 bg-yellow-100 rounded-lg">
@@ -232,10 +195,7 @@ export default function ManageRegisteredCamps() {
                 Total Revenue
               </p>
               <p className="text-2xl font-bold text-foreground mt-1">
-                ৳
-                {registrations
-                  .filter((r) => r.paymentStatus === 'paid')
-                  .reduce((sum, r) => sum + r.campFees, 0)}
+                ৳{getTotalFees()}
               </p>
             </div>
             <div className="p-3 bg-purple-100 rounded-lg">
@@ -264,14 +224,21 @@ export default function ManageRegisteredCamps() {
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <select
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
+                onChange={(e) =>
+                  setStatusFilter(
+                    e.target.value as
+                      | 'unpaid'
+                      | 'all'
+                      | 'paid-confirmed'
+                      | 'paid-pending'
+                  )
+                }
                 className="pl-10 pr-8 py-3 border border-input rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary appearance-none"
               >
-                <option value="all">All Status</option>
-                <option value="paid">Paid</option>
-                <option value="unpaid">Unpaid</option>
-                <option value="confirmed">Confirmed</option>
-                <option value="pending">Pending Confirmation</option>
+                <option value="all">All Registrations</option>
+                <option value="paid-confirmed">Paid & Confirmed</option>
+                <option value="paid-pending">Paid but Pending</option>
+                <option value="unpaid">Unpaid Only</option>
               </select>
             </div>
           </div>
@@ -281,139 +248,149 @@ export default function ManageRegisteredCamps() {
       {/* Results Count */}
       <div className="flex justify-between items-center">
         <p className="text-muted-foreground">
-          Showing {filteredRegistrations.length} of {registrations.length}{' '}
-          registrations
+          Showing {registrations.length} of {totalRegistration} registrations
           {searchQuery && ` for "${searchQuery}"`}
         </p>
       </div>
 
       {/* Registrations Table */}
       <div className="bg-card border border-border rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Camp & Participant
-                </th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Fees
-                </th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Payment
-                </th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Confirmation
-                </th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Contact
-                </th>
-                <th className="text-left py-4 px-6 font-semibold text-foreground">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredRegistrations.map((registration) => (
-                <tr
-                  key={registration.id}
-                  className="border-b border-border hover:bg-muted/30 transition-colors"
-                >
-                  <td className="py-4 px-6">
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {registration.campName}
-                      </p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {registration.participantName} • {registration.age} yrs
-                        • {registration.gender}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Registered:{' '}
-                        {new Date(
-                          registration.registrationDate
-                        ).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6 text-foreground font-medium">
-                    ৳{registration.campFees}
-                  </td>
-                  <td className="py-4 px-6">
-                    <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                        registration.paymentStatus,
-                        'payment'
-                      )}`}
-                    >
-                      {registration.paymentStatus === 'paid'
-                        ? 'Paid'
-                        : 'Unpaid'}
-                    </span>
-                  </td>
-                  <td className="py-4 px-6">
-                    {registration.confirmationStatus === 'pending' ? (
-                      <button
-                        onClick={() => handleConfirm(registration.id)}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
-                      >
-                        Pending
-                      </button>
-                    ) : (
+        {isLoading ? (
+          <Spinner className="my-6 w-12 h-12" />
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Camp & Participant
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Fees
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Payment
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Confirmation
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Contact
+                  </th>
+                  <th className="text-left py-4 px-6 font-semibold text-foreground">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {registrations.map((registration) => (
+                  <tr
+                    key={registration.id}
+                    className="border-b border-border hover:bg-muted/30 transition-colors"
+                  >
+                    <td className="py-4 px-6">
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {registration.campName}
+                        </p>
+                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {registration.participantName} • {registration.age}{' '}
+                          yrs • {registration.gender}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Registered:{' '}
+                          {new Date(
+                            registration.registrationDate
+                          ).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6 text-foreground font-medium">
+                      ৳{registration.campFees}
+                    </td>
+                    <td className="py-4 px-6">
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
-                          registration.confirmationStatus,
-                          'confirmation'
+                          registration.paymentStatus,
+                          'payment'
                         )}`}
                       >
-                        Confirmed
+                        {registration.paymentStatus === 'paid'
+                          ? 'Paid'
+                          : 'Unpaid'}
                       </span>
-                    )}
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="space-y-1">
-                      <p className="text-sm flex items-center gap-1">
-                        <Mail className="h-3 w-3 text-muted-foreground" />
-                        {registration.participantEmail}
-                      </p>
-                      <p className="text-sm flex items-center gap-1">
-                        <Phone className="h-3 w-3 text-muted-foreground" />
-                        {registration.participantPhone}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Emergency: {registration.emergencyContact}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="py-4 px-6">
-                    <div className="flex items-center space-x-2">
-                      {registration.confirmationStatus === 'pending' && (
+                    </td>
+                    <td className="py-4 px-6">
+                      {registration.confirmationStatus === 'pending' ? (
                         <button
-                          onClick={() => handleConfirm(registration.id)}
-                          className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1"
+                          onClick={() =>
+                            handleConfirm(registration.registrationId)
+                          }
+                          className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors"
                         >
-                          <Check className="h-3 w-3" />
-                          Confirm
+                          Pending
                         </button>
+                      ) : (
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(
+                            registration.confirmationStatus,
+                            'confirmation'
+                          )}`}
+                        >
+                          Confirmed
+                        </span>
                       )}
-                      <button
-                        onClick={() => handleCancel(registration.id)}
-                        disabled={!canCancel(registration)}
-                        className="bg-destructive text-destructive-foreground px-3 py-1 rounded-lg hover:bg-destructive/90 transition-colors text-sm font-medium flex items-center gap-1 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
-                      >
-                        <X className="h-3 w-3" />
-                        Cancel
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="space-y-1">
+                        <p className="text-sm flex items-center gap-1">
+                          <Mail className="h-3 w-3 text-muted-foreground" />
+                          {registration.participantEmail}
+                        </p>
+                        <p className="text-sm flex items-center gap-1">
+                          <Phone className="h-3 w-3 text-muted-foreground" />
+                          {registration.participantPhone}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Emergency: {registration.emergencyContact}
+                        </p>
+                      </div>
+                    </td>
+                    <td className="py-4 px-6">
+                      <div className="flex items-center space-x-2">
+                        {registration.confirmationStatus === 'pending' && (
+                          <button
+                            onClick={() =>
+                              handleConfirm(registration.registrationId)
+                            }
+                            className="bg-green-600 text-white px-3 py-1 rounded-lg hover:bg-green-700 transition-colors text-sm font-medium flex items-center gap-1"
+                          >
+                            <Check className="h-3 w-3" />
+                            Confirm
+                          </button>
+                        )}
+                        {registration.confirmationStatus !== 'confirmed' && (
+                          <button
+                            onClick={() =>
+                              handleCancel(registration.registrationId)
+                            }
+                            className="bg-red-600 text-white px-3 py-1 rounded-lg hover:bg-red-700 transition-colors text-sm font-medium flex items-center gap-1"
+                          >
+                            <X className="h-3 w-3" />
+                            Cancel
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-        {filteredRegistrations.length === 0 && (
+        {registrations.length === 0 && (
           <div className="text-center py-12">
             <div className="text-muted-foreground text-lg mb-4">
               {searchQuery || statusFilter !== 'all'
@@ -438,7 +415,7 @@ export default function ManageRegisteredCamps() {
       {/* Pagination */}
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">
-          Showing 1 to 10 of {filteredRegistrations.length} entries
+          Showing 1 to 10 of {totalRegistration} entries
         </p>
         <div className="flex items-center space-x-2">
           <button className="px-3 py-2 border border-input rounded-lg text-foreground hover:bg-muted transition-colors disabled:opacity-50 disabled:cursor-not-allowed">

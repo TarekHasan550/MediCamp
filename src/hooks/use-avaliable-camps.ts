@@ -9,7 +9,7 @@ interface campQuery {
 }
 const useAvailableCamps = ({ search, sort, page, limit }: campQuery) => {
   return useQuery({
-    queryKey: ['available-camps'],
+    queryKey: ['available-camps', { search, sort, page, limit }],
     queryFn: async () =>
       await getAvailableCamp({
         search,
@@ -17,6 +17,7 @@ const useAvailableCamps = ({ search, sort, page, limit }: campQuery) => {
         page,
         limit,
       }),
+    staleTime: 1000 * 60,
   });
 };
 
